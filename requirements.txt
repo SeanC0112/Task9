@@ -1,0 +1,14 @@
+carla
+future
+numpy
+pygame
+matplotlib
+open3d
+Pillow
+gymnasium
+scikit-image
+tensorflow
+stable_baselines3
+torch --index-url https://download.pytorch.org/whl/cu124
+torchvision --index-url https://download.pytorch.org/whl/cu124
+torchaudio --index-url https://download.pytorch.org/whl/cu124
