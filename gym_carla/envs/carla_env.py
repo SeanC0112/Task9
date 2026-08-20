@@ -19,13 +19,14 @@ from gymnasium import spaces
 from gymnasium.utils import seeding
 import carla
 
-from render import BirdeyeRender
-from route_planner import RoutePlanner
-from misc import *
+from gym_carla.envs.render import BirdeyeRender
+from gym_carla.envs.route_planner import RoutePlanner
+from gym_carla.envs.misc import *
 
 
-class CarlaEnv(gym.Env):
-  """An OpenAI gym wrapper for CARLA simulator."""
+
+class CarlaEnv(gymnasium.Env):
+  """An OpenAI gymnasium wrapper for CARLA simulator."""
 
   def __init__(self, params):
     # parameters
