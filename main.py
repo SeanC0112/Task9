@@ -24,6 +24,8 @@ from torchrl.envs import (
     ToTensorImage,
     StepCounter,
     TransformedEnv,
+    ObservationNorm,
+    DoubleToFloat,
 )
 from torchrl.envs.libs.gym import GymEnv
 from torchrl.envs.utils import check_env_specs, ExplorationType, set_exploration_type
@@ -89,11 +91,13 @@ env = TransformedEnv(
     base_env,
     Compose(
         # normalize observations
+        ObservationNorm(in_keys=["lidar"]),
+        DoubleToFloat(),
         StepCounter(),
     ),
 )
 
 check_env_specs(env)
 
-actor_net = nn.Sequential(
-    
+print("Observation spec:", env.observation_spec)
+print("Action spec:", env.action_spec)

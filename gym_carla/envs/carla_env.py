@@ -14,14 +14,14 @@ import random
 import time
 from skimage.transform import resize
 
-import gym
-from gym import spaces
-from gym.utils import seeding
+import gymnasium
+from gymnasium import spaces
+from gymnasium.utils import seeding
 import carla
 
-from gym_carla.envs.render import BirdeyeRender
-from gym_carla.envs.route_planner import RoutePlanner
-from gym_carla.envs.misc import *
+from render import BirdeyeRender
+from route_planner import RoutePlanner
+from misc import *
 
 
 class CarlaEnv(gym.Env):
