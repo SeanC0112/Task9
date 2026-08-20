@@ -84,3 +84,16 @@ lmbda = 0.95
 entropy_eps = 12e-3
 
 base_env = GymEnv("carla-v0", params=params, render_mode="human", lap_complete_percent=0.95, domain_randomize=False, continuous=True, device=device)
+
+env = TransformedEnv(
+    base_env,
+    Compose(
+        # normalize observations
+        StepCounter(),
+    ),
+)
+
+check_env_specs(env)
+
+actor_net = nn.Sequential(
+    
