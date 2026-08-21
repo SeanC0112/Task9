@@ -545,7 +545,7 @@ class CarlaEnv(gymnasium.Env):
       np.array(np.array([np.cos(ego_yaw), np.sin(ego_yaw)]))))
     v = self.ego.get_velocity()
     speed = np.sqrt(v.x**2 + v.y**2)
-    state = np.array([lateral_dis, - delta_yaw, speed, self.vehicle_front]) #kinda wanna get gree
+    state = np.array([lateral_dis, - delta_yaw, speed, self.vehicle_front]) #kinda wanna get gre
 
     if self.pixor:
       ## Vehicle classification and regression maps (requires further normalization)
