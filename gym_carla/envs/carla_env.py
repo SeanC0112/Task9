@@ -148,7 +148,7 @@ class CarlaEnv(gymnasium.Env):
       x, y = x.flatten(), y.flatten()
       self.pixel_grid = np.vstack((x, y)).T
 
-  def reset(self):
+  def reset(self, **kwargs):
     # Clear sensor objects  
     self.collision_sensor = None
     self.lidar_sensor = None
@@ -159,6 +159,10 @@ class CarlaEnv(gymnasium.Env):
 
     # Disable sync mode
     self._set_synchronous_mode(False)
+
+    for key, item in kwargs.items():
+      if key == "seed":
+        self.seed(item)
 
     # Spawn surrounding vehicles
     random.shuffle(self.vehicle_spawn_points)
