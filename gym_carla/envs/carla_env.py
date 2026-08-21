@@ -598,7 +598,7 @@ class CarlaEnv(gymnasium.Env):
         'pixor_state': pixor_state,
       })
 
-    return obs
+    return obs, None
 
   def _get_reward(self):
     """Calculate the step reward."""
