@@ -305,7 +305,7 @@ class CarlaEnv(gymnasium.Env):
     self.time_step += 1
     self.total_step += 1
 
-    return (self._get_obs(), self._get_reward(), self._terminal(), copy.deepcopy(info))
+    return (self._get_obs(), self._get_reward(), self._terminal(), False, copy.deepcopy(info))
 
   def seed(self, seed=None):
     self.np_random, seed = seeding.np_random(seed)
