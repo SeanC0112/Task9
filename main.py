@@ -50,6 +50,7 @@ params = {
 'ego_vehicle_filter': 'vehicle.lincoln*',  # filter for defining ego vehicle
 'port': 2000,  # connection port
 'town': 'Town03',  # which town to simulate
+'task_mode': 'random',  # mode of the task, [random, roundabout (only for Town03)]
 'max_time_episode': 1000,  # maximum timesteps per episode
 'max_waypt': 12,  # maximum number of waypoints
 'obs_range': 32,  # observation range (meter)
@@ -58,7 +59,9 @@ params = {
 'out_lane_thres': 2.0,  # threshold for out of lane
 'desired_speed': 8,  # desired speed (m/s)
 'max_ego_spawn_times': 200,  # maximum times to spawn ego vehicle
-'display_route': False,  # whether to render the desired route
+'display_route': True,  # whether to render the desired route
+'pixor_size': 64,  # size of the pixor labels
+'pixor': False,  # whether to output PIXOR observation
 }
 
 is_fork = multiprocessing.get_start_method() == "fork"
@@ -85,7 +88,7 @@ gamma = 0.99
 lmbda = 0.95
 entropy_eps = 12e-3
 
-base_env = GymEnv("carla-v0", params=params, render_mode="human", lap_complete_percent=0.95, domain_randomize=False, continuous=True, device=device)
+base_env = GymEnv("carla-v0", params=params, device=device)
 
 env = TransformedEnv(
     base_env,
@@ -96,6 +99,8 @@ env = TransformedEnv(
         StepCounter(),
     ),
 )
+
+env.transform[0].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
 
 check_env_specs(env)
 
