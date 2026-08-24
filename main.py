@@ -116,9 +116,13 @@ class ActorNet(nn.Module):
             NormalParamExtractor(),
         )
 
-    def forward(self, obs):
-        cnn_out = self.cnn(obs["lidar"])
-        concatenated = torch.cat([cnn_out, obs["state"]], dim=-1)
+
+    def forward(self, lidar, state):
+        print("lidar shape:", lidar.shape)
+        print("state shape:", state.shape)
+        lidar = lidar.movedim(-1, -3)
+        cnn_out = self.cnn(lidar)
+        concatenated = torch.cat([cnn_out, state], dim=-1)
         mlp_out = self.mlp(concatenated)
         return mlp_out
 
@@ -145,9 +149,12 @@ class ValueNet(nn.Module):
             nn.LazyLinear(1),
         )
 
-    def forward(self, obs):
-        cnn_out = self.cnn(obs["lidar"])
-        concatenated = torch.cat([cnn_out, obs["state"]], dim=-1)
+    def forward(self, lidar, state):
+        print("lidar shape:", lidar.shape)
+        print("state shape:", state.shape)
+        lidar = lidar.movedim(-1, -3)
+        cnn_out = self.cnn(lidar)
+        concatenated = torch.cat([cnn_out, state], dim=-1)
         mlp_out = self.mlp(concatenated)
         return mlp_out
 
@@ -173,7 +180,7 @@ print("Action spec:", env.action_spec)
 
 policy_module = TensorDictModule(
     ActorNet(env.action_spec),
-    in_keys=["lidar", "state"],
+    in_keys=["lidar", "observation"],
     out_keys=["loc", "scale"],
     )
 
@@ -192,7 +199,7 @@ policy_module = ProbabilisticActor(
 
 value_module = ValueOperator(
     module=ValueNet(env.action_spec),
-    in_keys=["lidar", "state"],
+    in_keys=["lidar", "observation"],
 )
 
 collector = Collector(
