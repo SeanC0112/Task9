@@ -92,6 +92,65 @@ gamma = 0.99
 lmbda = 0.95
 entropy_eps = 12e-3
 
+class ActorNet(nn.Module):
+    def __init__(self, actions):
+        super().__init__()
+        self.cnn = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=10, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=6, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            nn.ReLU(),
+            nn.Flatten(start_dim=0, end_dim=-1),
+            nn.LazyLinear(256),
+        )
+        self.mlp = nn.Sequential(
+            nn.LazyLinear(528),
+            nn.ReLU(),
+            nn.LazyLinear(256),
+            nn.ReLU(),
+            nn.LazyLinear(128),
+            nn.ReLU(),
+            nn.LazyLinear(actions.shape[-1] * 2),
+            NormalParamExtractor(),
+        )
+
+    def forward(self, obs):
+        cnn_out = self.cnn(obs["lidar"])
+        concatenated = torch.cat([cnn_out, obs["state"]], dim=-1)
+        mlp_out = self.mlp(concatenated)
+        return mlp_out
+
+class ValueNet(nn.Module):
+    def __init__(self, actions):
+        super().__init__()
+        self.cnn = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=10, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=6, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            nn.ReLU(),
+            nn.Flatten(start_dim=0, end_dim=-1),
+            nn.LazyLinear(256),
+        )
+        self.mlp = nn.Sequential(
+            nn.LazyLinear(528),
+            nn.ReLU(),
+            nn.LazyLinear(256),
+            nn.ReLU(),
+            nn.LazyLinear(128),
+            nn.ReLU(),
+            nn.LazyLinear(1),
+        )
+
+    def forward(self, obs):
+        cnn_out = self.cnn(obs["lidar"])
+        concatenated = torch.cat([cnn_out, obs["state"]], dim=-1)
+        mlp_out = self.mlp(concatenated)
+        return mlp_out
+
 base_env = GymEnv("carla-v0", params=params, device=device)
 
 env = TransformedEnv(
@@ -111,3 +170,21 @@ check_env_specs(env)
 
 print("Observation spec:", env.observation_spec)
 print("Action spec:", env.action_spec)
+
+policy_module = TensorDictModule(
+    ActorNet(env.action_spec),
+    in_keys=["lidar", "state"],
+    out_keys=["loc", "scale"],
+    )
+
+policy_module = ProbabilisticActor(
+    module=policy_module,
+    spec=env.action_spec,
+    in_keys=["loc", "scale"],
+    distribution_class=TanhNormal,
+    # distribution_kwargs={
+    #     "low": env.action_spec_unbatched.space.low,
+    #     "high": env.action_spec_unbatched.space.high,
+    # },
+    return_log_prob=True,
+)
