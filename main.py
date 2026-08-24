@@ -26,6 +26,7 @@ from torchrl.envs import (
     TransformedEnv,
     ObservationNorm,
     DoubleToFloat,
+    DTypeCastTransform
 )
 from torchrl.envs.libs.gym import GymEnv
 from torchrl.envs.utils import check_env_specs, ExplorationType, set_exploration_type
@@ -70,6 +71,9 @@ device = (
     if torch.cuda.is_available() and not is_fork
     else torch.device("cpu")
 )
+
+print(f"Using device: {device}")
+
 torch.set_default_device(device)
 num_cells = 256  # number of cells in each layer i.e. output dim.
 lr = 8e-5
@@ -93,6 +97,7 @@ base_env = GymEnv("carla-v0", params=params, device=device)
 env = TransformedEnv(
     base_env,
     Compose(
+        DTypeCastTransform(dtype_in=torch.uint8, dtype_out=torch.float32, in_keys=["lidar"]),
         # normalize observations
         ObservationNorm(in_keys=["lidar"]),
         DoubleToFloat(),
@@ -100,7 +105,7 @@ env = TransformedEnv(
     ),
 )
 
-env.transform[0].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
+env.transform[1].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
 
 check_env_specs(env)
 

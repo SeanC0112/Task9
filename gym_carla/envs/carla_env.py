@@ -257,7 +257,7 @@ class CarlaEnv(gymnasium.Env):
     # Set ego information for render
     self.birdeye_render.set_hero(self.ego, self.ego.id)
 
-    return self._get_obs()
+    return self._get_obs(), {}
   
   def step(self, action):
     # Calculate acceleration and steering
@@ -598,7 +598,7 @@ class CarlaEnv(gymnasium.Env):
         'pixor_state': pixor_state,
       })
 
-    return obs, None
+    return obs
 
   def _get_reward(self):
     """Calculate the step reward."""
