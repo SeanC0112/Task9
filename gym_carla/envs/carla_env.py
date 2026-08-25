@@ -87,8 +87,12 @@ class CarlaEnv(gymnasium.Env):
     # Connect to carla server and get world object
     print('connecting to Carla server...')
     client = carla.Client('localhost', params['port'])
-    client.set_timeout(10.0)
-    self.world = client.load_world(params['town'])
+    client.set_timeout(30.0)
+    scurrent_map = client.get_world().get_map().name  # e.g. 'Carla/Maps/Town03'
+    if params['town'] not in scurrent_map:
+        self.world = client.load_world(params['town'])
+    else:
+        self.world = client.get_world()
     print('Carla server connected!')
 
     # Set weather
