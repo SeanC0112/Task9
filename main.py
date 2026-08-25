@@ -178,8 +178,15 @@ check_env_specs(env)
 print("Observation spec:", env.observation_spec)
 print("Action spec:", env.action_spec)
 
+actor_net = ActorNet(env.action_spec)
+value_net = ValueNet(env.action_spec)
+obs = env.reset()
+
+actor_net.forward(obs["lidar"], obs["observation"])
+value_net.forward(obs["lidar"], obs["observation"])
+
 policy_module = TensorDictModule(
-    ActorNet(env.action_spec),
+    actor_net,
     in_keys=["lidar", "observation"],
     out_keys=["loc", "scale"],
     )
@@ -198,7 +205,7 @@ policy_module = ProbabilisticActor(
 
 
 value_module = ValueOperator(
-    module=ValueNet(env.action_spec),
+    module=value_net,
     in_keys=["lidar", "observation"],
 )
 
