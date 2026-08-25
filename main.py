@@ -122,7 +122,7 @@ class ActorNet(nn.Module):
         print("state shape:", state.shape)
         lidar = lidar.movedim(-1, -3)
         cnn_out = self.cnn(lidar)
-        concatenated = torch.cat([cnn_out, state], dim=-1)
+        concatenated = torch.cat([cnn_out, state.unsqueeze(-1)], dim=-1)
         mlp_out = self.mlp(concatenated)
         return mlp_out
 
@@ -154,7 +154,7 @@ class ValueNet(nn.Module):
         print("state shape:", state.shape)
         lidar = lidar.movedim(-1, -3)
         cnn_out = self.cnn(lidar)
-        concatenated = torch.cat([cnn_out, state], dim=-1)
+        concatenated = torch.cat([cnn_out, state.unsqueeze(-1)], dim=-1)
         mlp_out = self.mlp(concatenated)
         return mlp_out
 
