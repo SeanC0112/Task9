@@ -96,13 +96,13 @@ class ActorNet(nn.Module):
     def __init__(self, actions):
         super().__init__()
         self.cnn = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=10, stride=2),
+            nn.LazyConv2d(32, kernel_size=10, stride=2),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=6, stride=2),
+            nn.LazyConv2d(64, kernel_size=6, stride=2),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=4, stride=2),
+            nn.LazyConv2d(64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Flatten(start_dim=0, end_dim=-1),
+            nn.Flatten(start_dim=1, end_dim=-1),
             nn.LazyLinear(256),
         )
         self.mlp = nn.Sequential(
@@ -130,13 +130,13 @@ class ValueNet(nn.Module):
     def __init__(self, actions):
         super().__init__()
         self.cnn = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=10, stride=2),
+            nn.LazyConv2d(32, kernel_size=10, stride=2),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=6, stride=2),
+            nn.LazyConv2d(64, kernel_size=6, stride=2),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=4, stride=2),
+            nn.LazyConv2d(64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Flatten(start_dim=0, end_dim=-1),
+            nn.Flatten(start_dim=1, end_dim=-1),
             nn.LazyLinear(256),
         )
         self.mlp = nn.Sequential(
