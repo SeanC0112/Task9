@@ -79,7 +79,7 @@ num_cells = 256  # number of cells in each layer i.e. output dim.
 lr = 8e-5
 max_grad_norm = 1.0
 
-frames_per_batch = 1000
+frames_per_batch = 300
 # For a complete training, bring the number of frames up to 1M
 total_frames = 750000
 
@@ -102,7 +102,7 @@ class ActorNet(nn.Module):
             nn.ReLU(),
             nn.LazyConv2d(64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Flatten(start_dim=0, end_dim=-1),
+            nn.Flatten(start_dim=1, end_dim=-1),
             nn.LazyLinear(256),
         )
         self.mlp = nn.Sequential(
@@ -120,11 +120,19 @@ class ActorNet(nn.Module):
     def forward(self, lidar, state):
         print("lidar shape:", lidar.shape)
         print("state shape:", state.shape)
+        no_batch = lidar.dim() == 3
         lidar = lidar.movedim(-1, -3)
+        if no_batch:
+            lidar = lidar.unsqueeze(0)      
+
         cnn_out = self.cnn(lidar)
+
+        if no_batch:
+            cnn_out = cnn_out.squeeze(0)
+
         print("cnn_out shape:", cnn_out.shape)
         print("state shape after unsqueeze:", state.shape)
-        concatenated = torch.cat([cnn_out, state], dim=0)
+        concatenated = torch.cat([cnn_out, state], dim=-1)
         mlp_out = self.mlp(concatenated)
         return mlp_out
 
@@ -138,7 +146,7 @@ class ValueNet(nn.Module):
             nn.ReLU(),
             nn.LazyConv2d(64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Flatten(start_dim=0, end_dim=-1),
+            nn.Flatten(start_dim=1, end_dim=-1),
             nn.LazyLinear(256),
         )
         self.mlp = nn.Sequential(
@@ -154,9 +162,17 @@ class ValueNet(nn.Module):
     def forward(self, lidar, state):
         print("lidar shape:", lidar.shape)
         print("state shape:", state.shape)
+        no_batch = lidar.dim() == 3
         lidar = lidar.movedim(-1, -3)
+        if no_batch:
+            lidar = lidar.unsqueeze(0)
+
         cnn_out = self.cnn(lidar)
-        concatenated = torch.cat([cnn_out, state], dim=0)
+
+        if no_batch:
+            cnn_out = cnn_out.squeeze(0)
+
+        concatenated = torch.cat([cnn_out, state], dim=-1)
         mlp_out = self.mlp(concatenated)
         return mlp_out
 
