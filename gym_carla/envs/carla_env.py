@@ -94,6 +94,8 @@ class CarlaEnv(gymnasium.Env):
     else:
         self.world = client.get_world()
     print('Carla server connected!')
+    for actor in self.world.get_actors().filter('sensor.*'):
+      actor.destroy()
 
     # Set weather
     self.world.set_weather(carla.WeatherParameters.ClearNoon)
