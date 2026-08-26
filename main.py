@@ -118,8 +118,8 @@ class ActorNet(nn.Module):
 
 
     def forward(self, lidar, state):
-        print("lidar shape:", lidar.shape)
-        print("state shape:", state.shape)
+        # print("lidar shape:", lidar.shape)
+        # print("state shape:", state.shape)
         no_batch = lidar.dim() == 3
         lidar = lidar.movedim(-1, -3)
         if no_batch:
@@ -130,8 +130,8 @@ class ActorNet(nn.Module):
         if no_batch:
             cnn_out = cnn_out.squeeze(0)
 
-        print("cnn_out shape:", cnn_out.shape)
-        print("state shape after unsqueeze:", state.shape)
+        # print("cnn_out shape:", cnn_out.shape)
+        # print("state shape after unsqueeze:", state.shape)
         concatenated = torch.cat([cnn_out, state], dim=-1)
         mlp_out = self.mlp(concatenated)
         return mlp_out
@@ -160,8 +160,8 @@ class ValueNet(nn.Module):
         )
 
     def forward(self, lidar, state):
-        print("lidar shape:", lidar.shape)
-        print("state shape:", state.shape)
+        # print("lidar shape:", lidar.shape)
+        # print("state shape:", state.shape)
         no_batch = lidar.dim() == 3
         lidar = lidar.movedim(-1, -3)
         if no_batch:

@@ -95,6 +95,7 @@ class CarlaEnv(gymnasium.Env):
         self.world = client.get_world()
     print('Carla server connected!')
     for actor in self.world.get_actors().filter('sensor.*'):
+      print('Destroying actor id: %d, type: %s' % (actor.id, actor.type_id))
       actor.destroy()
 
     # Set weather
