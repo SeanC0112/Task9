@@ -49,7 +49,7 @@ params = {
 'continuous_accel_range': [-3.0, 3.0],  # continuous acceleration range
 'continuous_steer_range': [-0.3, 0.3],  # continuous steering angle range
 'ego_vehicle_filter': 'vehicle.lincoln*',  # filter for defining ego vehicle
-'port': 2000,  # connection port
+'port': 2001,  # connection port
 'town': 'Town03',  # which town to simulate
 'task_mode': 'random',  # mode of the task, [random, roundabout (only for Town03)]
 'max_time_episode': 1000,  # maximum timesteps per episode
@@ -102,7 +102,7 @@ class ActorNet(nn.Module):
             nn.ReLU(),
             nn.LazyConv2d(64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Flatten(start_dim=1, end_dim=-1),
+            nn.Flatten(start_dim=0, end_dim=-1),
             nn.LazyLinear(256),
         )
         self.mlp = nn.Sequential(
@@ -122,7 +122,9 @@ class ActorNet(nn.Module):
         print("state shape:", state.shape)
         lidar = lidar.movedim(-1, -3)
         cnn_out = self.cnn(lidar)
-        concatenated = torch.cat([cnn_out, state.unsqueeze(-1)], dim=-1)
+        print("cnn_out shape:", cnn_out.shape)
+        print("state shape after unsqueeze:", state.shape)
+        concatenated = torch.cat([cnn_out, state], dim=0)
         mlp_out = self.mlp(concatenated)
         return mlp_out
 
@@ -136,7 +138,7 @@ class ValueNet(nn.Module):
             nn.ReLU(),
             nn.LazyConv2d(64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Flatten(start_dim=1, end_dim=-1),
+            nn.Flatten(start_dim=0, end_dim=-1),
             nn.LazyLinear(256),
         )
         self.mlp = nn.Sequential(
@@ -154,7 +156,7 @@ class ValueNet(nn.Module):
         print("state shape:", state.shape)
         lidar = lidar.movedim(-1, -3)
         cnn_out = self.cnn(lidar)
-        concatenated = torch.cat([cnn_out, state.unsqueeze(-1)], dim=-1)
+        concatenated = torch.cat([cnn_out, state], dim=0)
         mlp_out = self.mlp(concatenated)
         return mlp_out
 
@@ -165,15 +167,17 @@ env = TransformedEnv(
     Compose(
         DTypeCastTransform(dtype_in=torch.uint8, dtype_out=torch.float32, in_keys=["lidar"]),
         # normalize observations
-        ObservationNorm(in_keys=["lidar"]),
+        # ObservationNorm(in_keys=["lidar"]),
         DoubleToFloat(),
         StepCounter(),
     ),
 )
 
-env.transform[1].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
+# env.transform[1].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
+
 
 check_env_specs(env)
+
 
 print("Observation spec:", env.observation_spec)
 print("Action spec:", env.action_spec)
