@@ -7,12 +7,9 @@ open3d
 Pillow
 gymnasium
 scikit-image
-
 tqdm
 torchrl
 tensordict
-collections
-os
 warnings
 stable_baselines3
 torch --index-url https://download.pytorch.org/whl/cu124
