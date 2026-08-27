@@ -7,9 +7,13 @@ open3d
 Pillow
 gymnasium
 scikit-image
-tensorflow
+
+tqdm
 torchrl
 tensordict
+collections
+os
+warnings
 stable_baselines3
 torch --index-url https://download.pytorch.org/whl/cu124
 torchvision --index-url https://download.pytorch.org/whl/cu124
