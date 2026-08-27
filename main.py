@@ -34,6 +34,7 @@ from torchrl.modules import ProbabilisticActor, TanhNormal, ValueOperator
 from torchrl.objectives import ClipPPOLoss
 from torchrl.objectives.value import GAE
 from tqdm import tqdm
+import sys
 
 
 # parameters for the gym_carla environment
@@ -92,19 +93,52 @@ gamma = 0.99
 lmbda = 0.95
 entropy_eps = 12e-3
 
+arg = sys.argv[1]
+
+if not os.path.exists(f'persistentvolumeclaim/plots{arg}'):
+    os.makedirs(f'persistentvolumeclaim/plots{arg}')
+
 class ActorNet(nn.Module):
-    def __init__(self, actions):
+    def __init__(self, actions, arg):
         super().__init__()
+        self.arg = arg
+
         self.cnn = nn.Sequential(
-            nn.LazyConv2d(32, kernel_size=10, stride=2),
-            nn.ReLU(),
-            nn.LazyConv2d(64, kernel_size=6, stride=2),
-            nn.ReLU(),
-            nn.LazyConv2d(64, kernel_size=4, stride=2),
-            nn.ReLU(),
-            nn.Flatten(start_dim=1, end_dim=-1),
-            nn.LazyLinear(256),
-        )
+            nn.Linear(256, 256),
+            nn.ReLU(),)
+        
+        if arg == "baseline":
+            self.cnn = nn.Sequential(
+                nn.LazyConv2d(32, kernel_size=10, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=6, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.Flatten(start_dim=1, end_dim=-1),
+                nn.LazyLinear(256),
+            )
+        elif arg == "birdseye":
+            self.cnn = nn.ModuleList([nn.Sequential(
+                nn.LazyConv2d(32, kernel_size=10, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=6, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.Flatten(start_dim=1, end_dim=-1),
+                nn.LazyLinear(256),
+            )])
+            self.cnn.append(nn.Sequential(
+                nn.LazyConv2d(32, kernel_size=10, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=6, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.Flatten(start_dim=1, end_dim=-1),
+                nn.LazyLinear(256),
+            ))
         self.mlp = nn.Sequential(
             nn.LazyLinear(528),
             nn.ReLU(),
@@ -117,38 +151,86 @@ class ActorNet(nn.Module):
         )
 
 
-    def forward(self, lidar, state):
+    def forward(self, lidar, birdseye, state):
         # print("lidar shape:", lidar.shape)
         # print("state shape:", state.shape)
-        no_batch = lidar.dim() == 3
-        lidar = lidar.movedim(-1, -3)
-        if no_batch:
-            lidar = lidar.unsqueeze(0)      
+        if self.arg == "baseline":
+            no_batch = lidar.dim() == 3
+            lidar = lidar.movedim(-1, -3)
+            if no_batch:
+                lidar = lidar.unsqueeze(0)      
 
-        cnn_out = self.cnn(lidar)
+            cnn_out = self.cnn(lidar)
 
-        if no_batch:
-            cnn_out = cnn_out.squeeze(0)
+            if no_batch:
+                cnn_out = cnn_out.squeeze(0)
 
-        # print("cnn_out shape:", cnn_out.shape)
-        # print("state shape after unsqueeze:", state.shape)
-        concatenated = torch.cat([cnn_out, state], dim=-1)
-        mlp_out = self.mlp(concatenated)
-        return mlp_out
+            # print("cnn_out shape:", cnn_out.shape)
+            # print("state shape after unsqueeze:", state.shape)
+            concatenated = torch.cat([cnn_out, state], dim=-1)
+            mlp_out = self.mlp(concatenated)
+            return mlp_out
+        
+        elif self.arg == "birdseye":
+            no_batch = lidar.dim() == 3
+            lidar = lidar.movedim(-1, -3)
+            birdseye = birdseye.movedim(-1, -3)
+            if no_batch:
+                lidar = lidar.unsqueeze(0)
+                birdseye = birdseye.unsqueeze(0)
+
+            cnn_out_lidar = self.cnn[0](lidar)
+            cnn_out_birdseye = self.cnn[1](birdseye)
+
+            if no_batch:
+                cnn_out_lidar = cnn_out_lidar.squeeze(0)
+                cnn_out_birdseye = cnn_out_birdseye.squeeze(0)
+
+            concatenated = torch.cat([cnn_out_lidar, cnn_out_birdseye, state], dim=-1)
+            mlp_out = self.mlp(concatenated)
+            return mlp_out
 
 class ValueNet(nn.Module):
-    def __init__(self, actions):
+    def __init__(self, actions, arg):
         super().__init__()
+        self.arg = arg
+
         self.cnn = nn.Sequential(
-            nn.LazyConv2d(32, kernel_size=10, stride=2),
-            nn.ReLU(),
-            nn.LazyConv2d(64, kernel_size=6, stride=2),
-            nn.ReLU(),
-            nn.LazyConv2d(64, kernel_size=4, stride=2),
-            nn.ReLU(),
-            nn.Flatten(start_dim=1, end_dim=-1),
-            nn.LazyLinear(256),
-        )
+            nn.Linear(256, 256),
+            nn.ReLU(),)
+        
+        if arg == "baseline":
+            self.cnn = nn.Sequential(
+                nn.LazyConv2d(32, kernel_size=10, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=6, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.Flatten(start_dim=1, end_dim=-1),
+                nn.LazyLinear(256),
+            )
+        elif arg == "birdseye":
+            self.cnn = nn.ModuleList([nn.Sequential(
+                nn.LazyConv2d(32, kernel_size=10, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=6, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.Flatten(start_dim=1, end_dim=-1),
+                nn.LazyLinear(256),
+            )])
+            self.cnn.append(nn.Sequential(
+                nn.LazyConv2d(32, kernel_size=10, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=6, stride=2),
+                nn.ReLU(),
+                nn.LazyConv2d(64, kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.Flatten(start_dim=1, end_dim=-1),
+                nn.LazyLinear(256),
+            ))
         self.mlp = nn.Sequential(
             nn.LazyLinear(528),
             nn.ReLU(),
@@ -156,32 +238,55 @@ class ValueNet(nn.Module):
             nn.ReLU(),
             nn.LazyLinear(128),
             nn.ReLU(),
-            nn.LazyLinear(1),
+            nn.LazyLinear(1)
         )
 
-    def forward(self, lidar, state):
+
+    def forward(self, lidar, birdseye, state):
         # print("lidar shape:", lidar.shape)
         # print("state shape:", state.shape)
-        no_batch = lidar.dim() == 3
-        lidar = lidar.movedim(-1, -3)
-        if no_batch:
-            lidar = lidar.unsqueeze(0)
+        if self.arg == "baseline":
+            no_batch = lidar.dim() == 3
+            lidar = lidar.movedim(-1, -3)
+            if no_batch:
+                lidar = lidar.unsqueeze(0)      
 
-        cnn_out = self.cnn(lidar)
+            cnn_out = self.cnn(lidar)
 
-        if no_batch:
-            cnn_out = cnn_out.squeeze(0)
+            if no_batch:
+                cnn_out = cnn_out.squeeze(0)
 
-        concatenated = torch.cat([cnn_out, state], dim=-1)
-        mlp_out = self.mlp(concatenated)
-        return mlp_out
+            # print("cnn_out shape:", cnn_out.shape)
+            # print("state shape after unsqueeze:", state.shape)
+            concatenated = torch.cat([cnn_out, state], dim=-1)
+            mlp_out = self.mlp(concatenated)
+            return mlp_out
+        
+        elif self.arg == "birdseye":
+            no_batch = lidar.dim() == 3
+            lidar = lidar.movedim(-1, -3)
+            birdseye = birdseye.movedim(-1, -3)
+            if no_batch:
+                lidar = lidar.unsqueeze(0)
+                birdseye = birdseye.unsqueeze(0)
+
+            cnn_out_lidar = self.cnn[0](lidar)
+            cnn_out_birdseye = self.cnn[1](birdseye)
+
+            if no_batch:
+                cnn_out_lidar = cnn_out_lidar.squeeze(0)
+                cnn_out_birdseye = cnn_out_birdseye.squeeze(0)
+
+            concatenated = torch.cat([cnn_out_lidar, cnn_out_birdseye, state], dim=-1)
+            mlp_out = self.mlp(concatenated)
+            return mlp_out
 
 base_env = GymEnv("carla-v0", params=params, device=device)
 
 env = TransformedEnv(
     base_env,
     Compose(
-        DTypeCastTransform(dtype_in=torch.uint8, dtype_out=torch.float32, in_keys=["lidar"]),
+        DTypeCastTransform(dtype_in=torch.uint8, dtype_out=torch.float32, in_keys=["lidar", "birdeye"]),
         # normalize observations
         # ObservationNorm(in_keys=["lidar"]),
         DoubleToFloat(),
@@ -198,16 +303,16 @@ check_env_specs(env)
 print("Observation spec:", env.observation_spec)
 print("Action spec:", env.action_spec)
 
-actor_net = ActorNet(env.action_spec)
-value_net = ValueNet(env.action_spec)
+actor_net = ActorNet(env.action_spec, arg)
+value_net = ValueNet(env.action_spec, arg)
 obs = env.reset()
 
-actor_net.forward(obs["lidar"], obs["observation"])
-value_net.forward(obs["lidar"], obs["observation"])
+actor_net.forward(obs["lidar"], obs["birdeye"], obs["observation"])
+value_net.forward(obs["lidar"], obs["birdeye"], obs["observation"])
 
 policy_module = TensorDictModule(
     actor_net,
-    in_keys=["lidar", "observation"],
+    in_keys=["lidar", "birdeye", "observation"],
     out_keys=["loc", "scale"],
     )
 
@@ -226,7 +331,7 @@ policy_module = ProbabilisticActor(
 
 value_module = ValueOperator(
     module=value_net,
-    in_keys=["lidar", "observation"],
+    in_keys=["lidar", "birdeye", "observation"],
 )
 
 collector = Collector(
@@ -332,8 +437,8 @@ for i, tensordict_data in enumerate(collector):
     # We're also using a learning rate scheduler. Like the gradient clipping,
     # this is a nice-to-have but nothing necessary for PPO to work.
     scheduler.step()
-    for filename in os.listdir('.plots'):
-        os.remove(os.path.join('.plots', filename))
+    for filename in os.listdir(f'persistentvolumeclaim/plots{arg}'):
+        os.remove(os.path.join(f'persistentvolumeclaim/plots{arg}', filename))
     plt.figure(figsize=(10, 10))
     plt.subplot(2, 2, 1)
     plt.plot(logs["reward"])
@@ -347,5 +452,5 @@ for i, tensordict_data in enumerate(collector):
     plt.subplot(2, 2, 4)
     plt.plot(logs["eval step_count"])
     plt.title("Max step count (test)")
-    plt.savefig('.plots/plot.png')
+    plt.savefig(f'persistentvolumeclaim/plots{arg}/plot.png')
     plt.close() 
