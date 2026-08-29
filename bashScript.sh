@@ -3,7 +3,7 @@ if [ -d "./CARLA_LATEST" ]; then
 else
     apt update && apt install -y curl
     curl -L -o carla_0.9.16.tar.gz \
-        "https://github.com/carla-simulator/carla/releases/download/0.9.16/CARLA_0.9.16.tar.gz"
+        "https://tiny.carla.org/carla-0-9-16-linux"
     mkdir -p ./CARLA_LATEST
     echo "Extracting Carla to CARLA_LATEST/"
     tar -xvf ./carla_0.9.16.tar.gz -C ./CARLA_LATEST > /dev/null
@@ -22,6 +22,6 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 
-./CARLA_LATEST/CarlaUE4.sh -carla-rpc-port=2001 -renderOffScreen
+./CARLA_LATEST/CarlaUE4.sh -carla-rpc-port=2001 -RenderOffScreen
 
 python3 main.py baseline
