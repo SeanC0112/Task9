@@ -1,7 +1,7 @@
 if [ -d "./CARLA_LATEST" ]; then
     echo "Directory exists."
 else
-    sudo apt update && sudo apt install -y curl
+    apt update && apt install -y curl
     curl -L -O "https://github.com/carla-simulator/carla/archive/refs/tags/0.9.16.tar.gz"
     mkdir -p ./CARLA_LATEST
     echo "Extracting Carla to Desktop/CARLA_LATEST/"
