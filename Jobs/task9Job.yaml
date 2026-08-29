@@ -50,7 +50,7 @@ spec:
         command:
         - sh
         - -c
-        - "apt-get update && apt-get install -y git && cd /pvcvolume && rm -rf Task9 && git clone https://github.com/SeanC0112/Task-9 && cd Task-9 && bash bashScript.sh"
+        - "apt-get update && apt-get install -y git && cd /pvcvolume && rm -rf Task9 && git clone https://github.com/SeanC0112/Task-9 && cd Task-9 && bash bashScriptBirdseye.sh"
         volumeMounts:
         - name: pvcvolume
           mountPath: /pvcvolume
