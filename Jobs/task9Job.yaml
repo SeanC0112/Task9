@@ -38,11 +38,11 @@ spec:
           limits:
             memory: 32Gi
             cpu: "2"
-            nvidia.com/gpu: 2
+            nvidia.com/gpu: "2"
           requests:
             memory: 32Gi
             cpu: "2"
-            nvidia.com/gpu: 2
+            nvidia.com/gpu: "2"
       volumes:
       - name: pvcvolume
         persistentVolumeClaim:
