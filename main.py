@@ -98,8 +98,8 @@ lmbda = 0.95
 entropy_eps = 12e-3
 
 
-if not os.path.exists(f'persistentvolumeclaim/plots{arg}'):
-    os.makedirs(f'persistentvolumeclaim/plots{arg}')
+if not os.path.exists(f'plots{arg}'):
+    os.makedirs(f'plots{arg}')
 
 class ActorNet(nn.Module):
     def __init__(self, actions, arg):
