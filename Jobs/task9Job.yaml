@@ -23,7 +23,27 @@ spec:
                   values:
                     - k8s-ravi-01.calit2.optiputer.net
       containers:
-      - name: seanc-task9job
+      - name: seanc-task9job-baseline
+        image: pytorch/pytorch:2.13.0-cuda12.6-cudnn9-devel
+        securityContext:
+          runAsUser: 0
+        command:
+        - sh
+        - -c
+        - "apt-get update && apt-get install -y git && cd /pvcvolume && rm -rf Task-5 && git clone https://github.com/SeanC0112/Task-5 && cd Task-5 && bash bashScript.sh"
+        volumeMounts:
+        - name: pvcvolume
+          mountPath: /pvcvolume
+        resources:
+          limits:
+            memory: 32Gi
+            cpu: "2"
+            nvidia.com/gpu: "2"
+          requests:
+            memory: 32Gi
+            cpu: "2"
+            nvidia.com/gpu: "2"
+      - name: seanc-task9job-birdseye
         image: pytorch/pytorch:2.13.0-cuda12.6-cudnn9-devel
         securityContext:
           runAsUser: 0
