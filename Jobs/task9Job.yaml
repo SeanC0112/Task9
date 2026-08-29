@@ -24,7 +24,7 @@ spec:
                     - k8s-ravi-01.calit2.optiputer.net
       containers:
       - name: seanc-task9job
-        image: stablebaselines/stable-baselines3
+        image: pytorch/pytorch:2.13.0-cuda12.6-cudnn9-devel
         securityContext:
           runAsUser: 0
         command:

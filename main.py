@@ -470,8 +470,8 @@ for i, tensordict_data in enumerate(collector):
     # this is a nice-to-have but nothing necessary for PPO to work.
     print("hi")
     scheduler.step()
-    for filename in os.listdir(f'persistentvolumeclaim/plots{arg}'):
-        os.remove(os.path.join(f'persistentvolumeclaim/plots{arg}', filename))
+    for filename in os.listdir(f'plots{arg}'):
+        os.remove(os.path.join(f'plots{arg}', filename))
     plt.figure(figsize=(10, 10))
     plt.subplot(2, 2, 1)
     plt.plot(logs["reward"])
@@ -485,6 +485,6 @@ for i, tensordict_data in enumerate(collector):
     plt.subplot(2, 2, 4)
     plt.plot(logs["eval step_count"])
     plt.title("Max step count (test)")
-    plt.savefig(f'persistentvolumeclaim/plots{arg}/plot.png')
+    plt.savefig(f'plots{arg}/plot.png')
     plt.close() 
     print("hi2")
