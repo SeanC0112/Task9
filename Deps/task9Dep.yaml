@@ -1,0 +1,58 @@
+# image: nvidia/cuda:12.4.1-cudnn-devel-ubuntu20.04
+# image: nvidia/12.8.1-cudnn-devel-ubuntu20.04
+
+# Tip -> Find and replace "seanc-task3" with the PVC name
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seanc-task9
+  labels:
+    k8s-app: seanc-task9
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: seanc-task9
+  template:
+    metadata:
+      labels:
+        k8s-app: seanc-task9
+    spec:
+      containers:
+      - name: seanc-task9
+        image: pytorch/pytorch
+        resources:
+          limits:
+            memory: 8Gi
+            cpu: "1"
+            # nvidia.com/gpu: "1"
+          requests:
+            memory: 8Gi
+            cpu: "1"
+            # nvidia.com/gpu: "1"
+        command: [ "sh", "-c", "sleep infinity" ]
+        volumeMounts:
+        - mountPath: /pvcvolume
+          name: vol1
+        # - mountPath: /shapenet
+        #   name: vol2
+      volumes:
+      - name: vol1
+        persistentVolumeClaim:
+          claimName: seanc-task9pvc
+      # - name: vol2
+      #   persistentVolumeClaim:
+      #     claimName: jonathan-shapenet
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: nvidia.com/gpu.product
+      #           operator: In
+      #           values:
+      #           - NVIDIA-L40
+      #         - key: kubernetes.io/hostname
+      #           operator: In
+      #           values:
+      #           - k8s-gpu-5.ucsc.edu
