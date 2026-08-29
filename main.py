@@ -35,6 +35,7 @@ from torchrl.objectives import ClipPPOLoss
 from torchrl.objectives.value import GAE
 from tqdm import tqdm
 import sys
+arg = sys.argv[1]
 
 
 # parameters for the gym_carla environment
@@ -77,12 +78,15 @@ print(f"Using device: {device}")
 
 torch.set_default_device(device)
 num_cells = 256  # number of cells in each layer i.e. output dim.
-lr = 8e-5
+lr = 2e-5
 max_grad_norm = 1.0
+if arg == "baseline":
+    frames_per_batch = 300
+elif arg == "birdseye":
+    frames_per_batch = 150
 
-frames_per_batch = 300
 # For a complete training, bring the number of frames up to 1M
-total_frames = 750000
+total_frames = 50000
 
 sub_batch_size = 64  # cardinality of the sub-samples gathered from the current data in the inner loop
 num_epochs = 10  # optimization steps per batch of data collected
@@ -93,7 +97,6 @@ gamma = 0.99
 lmbda = 0.95
 entropy_eps = 12e-3
 
-arg = sys.argv[1]
 
 if not os.path.exists(f'persistentvolumeclaim/plots{arg}'):
     os.makedirs(f'persistentvolumeclaim/plots{arg}')
@@ -283,18 +286,36 @@ class ValueNet(nn.Module):
 
 base_env = GymEnv("carla-v0", params=params, device=device)
 
-env = TransformedEnv(
-    base_env,
-    Compose(
-        DTypeCastTransform(dtype_in=torch.uint8, dtype_out=torch.float32, in_keys=["lidar", "birdeye"]),
-        # normalize observations
-        # ObservationNorm(in_keys=["lidar"]),
-        DoubleToFloat(),
-        StepCounter(),
-    ),
-)
+if arg == "baseline":
+    env = TransformedEnv(
+        base_env,
+        Compose(
+            DTypeCastTransform(dtype_in=torch.uint8, dtype_out=torch.float32, in_keys=["lidar"]),
+            # normalize observations
+            ObservationNorm(in_keys=["lidar"]),
+            DoubleToFloat(),
+            StepCounter(),
+        ),
+    )
 
-# env.transform[1].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
+    env.transform[1].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
+
+
+elif arg == "birdseye":
+    env = TransformedEnv(
+        base_env,
+        Compose(
+            DTypeCastTransform(dtype_in=torch.uint8, dtype_out=torch.float32, in_keys=["lidar", "birdeye"]),
+            # normalize observations
+            ObservationNorm(in_keys=["lidar"]),
+            ObservationNorm(in_keys=["birdeye"]),
+            DoubleToFloat(),
+            StepCounter(),
+        ),
+    )
+
+    env.transform[1].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
+    env.transform[2].init_stats(num_iter=1000, reduce_dim=0, cat_dim=0)
 
 
 check_env_specs(env)
@@ -309,6 +330,11 @@ obs = env.reset()
 
 actor_net.forward(obs["lidar"], obs["birdeye"], obs["observation"])
 value_net.forward(obs["lidar"], obs["birdeye"], obs["observation"])
+
+with torch.no_grad():
+    final_layer = actor_net.mlp[-2]
+    final_layer.weight.mul_(0.01)
+    final_layer.bias.zero_()
 
 policy_module = TensorDictModule(
     actor_net,
@@ -394,6 +420,12 @@ for i, tensordict_data in enumerate(collector):
                 + loss_vals["loss_entropy"]
             )
 
+            if torch.isnan(loss_value) or torch.isinf(loss_value): # prevent weird nan rewards/ weights
+                print(f"NaN {i}")
+                optim.zero_grad()
+                continue
+
+
             # Optimization: backward, grad clipping and optimization step
             loss_value.backward()
             # this is not strictly mandatory but it's good practice to keep
@@ -436,6 +468,7 @@ for i, tensordict_data in enumerate(collector):
 
     # We're also using a learning rate scheduler. Like the gradient clipping,
     # this is a nice-to-have but nothing necessary for PPO to work.
+    print("hi")
     scheduler.step()
     for filename in os.listdir(f'persistentvolumeclaim/plots{arg}'):
         os.remove(os.path.join(f'persistentvolumeclaim/plots{arg}', filename))
@@ -454,3 +487,4 @@ for i, tensordict_data in enumerate(collector):
     plt.title("Max step count (test)")
     plt.savefig(f'persistentvolumeclaim/plots{arg}/plot.png')
     plt.close() 
+    print("hi2")
