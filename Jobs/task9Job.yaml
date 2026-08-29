@@ -43,26 +43,26 @@ spec:
             memory: 32Gi
             cpu: "2"
             nvidia.com/gpu: "2"
-      - name: seanc-task9job-birdseye
-        image: pytorch/pytorch:2.13.0-cuda12.6-cudnn9-devel
-        securityContext:
-          runAsUser: 0
-        command:
-        - sh
-        - -c
-        - "apt-get update && apt-get install -y git && cd /pvcvolume && cd Task9 && bash bashScriptBirdseye.sh"
-        volumeMounts:
-        - name: pvcvolume
-          mountPath: /pvcvolume
-        resources:
-          limits:
-            memory: 32Gi
-            cpu: "2"
-            nvidia.com/gpu: "2"
-          requests:
-            memory: 32Gi
-            cpu: "2"
-            nvidia.com/gpu: "2"
+      # - name: seanc-task9job-birdseye
+      #   image: pytorch/pytorch:2.13.0-cuda12.6-cudnn9-devel
+      #   securityContext:
+      #     runAsUser: 0
+      #   command:
+      #   - sh
+      #   - -c
+      #   - "apt-get update && apt-get install -y git && cd /pvcvolume && cd Task9 && bash bashScriptBirdseye.sh"
+      #   volumeMounts:
+      #   - name: pvcvolume
+      #     mountPath: /pvcvolume
+      #   resources:
+      #     limits:
+      #       memory: 32Gi
+      #       cpu: "2"
+      #       nvidia.com/gpu: "2"
+      #     requests:
+      #       memory: 32Gi
+      #       cpu: "2"
+      #       nvidia.com/gpu: "2"
       volumes:
       - name: pvcvolume
         persistentVolumeClaim:
