@@ -1,11 +1,11 @@
 if [ -d "./CARLA_LATEST" ]; then
     echo "Directory exists."
 else
-    wget https://carla-releases.s3.us-east-005.backblazeb2.com/Linux/CARLA_0.9.16.tar.gz -P .
+    curl -L -O "https://github.com/carla-simulator/carla/archive/refs/tags/0.9.16.tar.gz"
     mkdir -p ./CARLA_LATEST
     echo "Extracting Carla to Desktop/CARLA_LATEST/"
-    tar -xvf ./CARLA_0.9.16.tar.gz -C ./CARLA_LATEST > /dev/null
-    rm ./CARLA_0.9.16.tar.gz
+    tar -xvf ./carla_0.9.16.tar.gz -C ./CARLA_LATEST > /dev/null
+    rm ./carla_0.9.16.tar.gz
 fi
 
 
