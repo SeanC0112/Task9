@@ -548,8 +548,8 @@ class CarlaEnv(gymnasium.Env):
     ego_y = ego_trans.location.y
     ego_yaw = ego_trans.rotation.yaw/180*np.pi
     lateral_dis, w = get_preview_lane_dis(self.waypoints, ego_x, ego_y)
-    delta_yaw = np.arcsin(np.cross(w, 
-      np.array(np.array([np.cos(ego_yaw), np.sin(ego_yaw)]))))
+    cross_val = np.clip(np.cross(w, np.array([np.cos(ego_yaw), np.sin(ego_yaw)])), -1.0, 1.0)
+    delta_yaw = np.arcsin(cross_val)
     v = self.ego.get_velocity()
     speed = np.sqrt(v.x**2 + v.y**2)
     state = np.array([lateral_dis, - delta_yaw, speed, self.vehicle_front]) 

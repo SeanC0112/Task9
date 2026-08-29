@@ -140,6 +140,8 @@ def get_lane_dis(waypoints, x, y):
   vec = np.array([x - waypt[0], y - waypt[1]])
   lv = np.linalg.norm(np.array(vec))
   w = np.array([np.cos(waypt[2]/180*np.pi), np.sin(waypt[2]/180*np.pi)])
+  if lv < 1e-6:
+    return 0.0, w
   cross = np.cross(w, vec/lv)
   dis = - lv * cross
   return dis, w
@@ -158,6 +160,8 @@ def get_preview_lane_dis(waypoints, x, y, idx=2):
   vec = np.array([x - waypt[0], y - waypt[1]])
   lv = np.linalg.norm(np.array(vec))
   w = np.array([np.cos(waypt[2]/180*np.pi), np.sin(waypt[2]/180*np.pi)])
+  if lv < 1e-6:
+    return 0.0, w
   cross = np.cross(w, vec/lv)
   dis = - lv * cross
   return dis, w
