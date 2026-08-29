@@ -1,3 +1,9 @@
+wget https://carla-releases.s3.us-east-005.backblazeb2.com/Linux/CARLA_0.9.16.tar.gz -P .
+mkdir -p ./CARLA_LATEST
+echo "Extracting Carla to Desktop/CARLA_LATEST/"
+tar -xvf ./CARLA_0.9.16.tar.gz -C ./CARLA_LATEST > /dev/null
+rm ./CARLA_0.9.16.tar.gz
+
 apt install python3.12 python3.12-venv python3.12-dev -y
 apt install pip -y
 # apt-get install -y swig
