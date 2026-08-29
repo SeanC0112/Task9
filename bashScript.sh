@@ -1,4 +1,4 @@
-apt install python3.10 python3.10-venv python3.10-dev -y
+apt install python3.12 python3.12-venv python3.12-dev -y
 apt install pip -y
 # apt-get install -y swig
 
