@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seanc-task9helper
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: NotIn
+                  values:
+                  - k8s-chase-ci-07.calit2.optiputer.net
+                - key: kubernetes.io/hostname
+                  operator: NotIn
+                  values:
+                    - fiona8.ucsc.edu
+                - key: kubernetes.io/hostname
+                  operator: NotIn
+                  values:
+                    - k8s-ravi-01.calit2.optiputer.net
+      containers:
+      - name: seanc-task9helper
+        image: pytorch/pytorch:2.13.0-cuda12.6-cudnn9-devel
+        securityContext:
+          runAsUser: 0
+        # command:
+        # - sh
+        # - -c
+        # - "apt-get update && apt-get install -y git && cd /pvcvolume && rm -rf Task9 && git clone https://github.com/SeanC0112/Task9 && cd Task9 && bash bashScript.sh"
+        volumeMounts:
+        - name: pvcvolume
+          mountPath: /pvcvolume
+        resources:
+          limits:
+            memory: 8Gi
+            cpu: "1"
+            # nvidia.com/gpu: "2"
+          requests:
+            memory: 8Gi
+            cpu: "1"
+            # nvidia.com/gpu: "2"
+      # - name: seanc-task9job-birdseye
+      #   image: pytorch/pytorch:2.13.0-cuda12.6-cudnn9-devel
+      #   securityContext:
+      #     runAsUser: 0
+      #   command:
+      #   - sh
+      #   - -c
+      #   - "apt-get update && apt-get install -y git && cd /pvcvolume && cd Task9 && bash bashScriptBirdseye.sh"
+      #   volumeMounts:
+      #   - name: pvcvolume
+      #     mountPath: /pvcvolume
+      #   resources:
+      #     limits:
+      #       memory: 32Gi
+      #       cpu: "2"
+      #       nvidia.com/gpu: "2"
+      #     requests:
+      #       memory: 32Gi
+      #       cpu: "2"
+      #       nvidia.com/gpu: "2"
+      volumes:
+      - name: pvcvolume
+        persistentVolumeClaim:
+          claimName: seanc-task9pvc
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: nvidia.com/gpu.product
+      #           operator: In
+      #           values:
+      #           - NVIDIA-A10
+      restartPolicy: Never
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 60000
