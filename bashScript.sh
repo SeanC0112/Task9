@@ -1,3 +1,4 @@
+cd ..
 if [ -d "./CARLA_LATEST" ]; then
     echo "Directory exists."
 else
@@ -14,13 +15,17 @@ fi
 
 apt install python3.12 python3.12-venv python3.12-dev -y
 apt install pip -y
-# apt-get install -y swig
 
-python3 -m venv venv
-source venv/bin/activate
+if [ -d "./venv" ]; then
+    source venv/bin/activate
+else
+    python3 -m venv venv
+    source venv/bin/activate
 
-pip install --upgrade pip
-pip install -r requirements.txt
+    pip install --upgrade pip
+    pip install -r requirements.txt
+fi
+
 
 id -u carlauser &>/dev/null || useradd -m carlauser
 chown -R carlauser:carlauser .
@@ -31,4 +36,4 @@ CARLA_PID=$!
 
 sleep 30
 
-python3 main.py baseline
+python3 Task9/main.py baseline
