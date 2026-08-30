@@ -22,6 +22,13 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 
-./CARLA_LATEST/CarlaUE4.sh -carla-rpc-port=2001 -RenderOffScreen
+id -u carlauser &>/dev/null || useradd -m carlauser
+chown -R carlauser:carlauser .
+
+# launch Carla server as non-root, backgrounded
+su carlauser -c "./CARLA_LATEST/CarlaUE4.sh -carla-rpc-port=2001 -RenderOffScreen" &
+CARLA_PID=$!
+
+sleep 30
 
 python3 main.py baseline
