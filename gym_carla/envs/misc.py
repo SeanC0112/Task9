@@ -16,6 +16,9 @@ import pygame
 from matplotlib.path import Path
 import skimage
 
+def cross2d(a, b):
+    return a[0] * b[1] - a[1] * b[0]
+
 
 def get_speed(vehicle):
   """
@@ -142,7 +145,7 @@ def get_lane_dis(waypoints, x, y):
   w = np.array([np.cos(waypt[2]/180*np.pi), np.sin(waypt[2]/180*np.pi)])
   if lv < 1e-6:
     return 0.0, w
-  cross = np.cross(w, vec/lv)
+  cross = cross2d(w, vec/lv)
   dis = - lv * cross
   return dis, w
 
@@ -162,7 +165,7 @@ def get_preview_lane_dis(waypoints, x, y, idx=2):
   w = np.array([np.cos(waypt[2]/180*np.pi), np.sin(waypt[2]/180*np.pi)])
   if lv < 1e-6:
     return 0.0, w
-  cross = np.cross(w, vec/lv)
+  cross = cross2d(w, vec/lv)
   dis = - lv * cross
   return dis, w
 
