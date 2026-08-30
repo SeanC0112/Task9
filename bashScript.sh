@@ -9,17 +9,6 @@ export XDG_RUNTIME_DIR=/tmp/runtime-carlauser
 mkdir -p "$XDG_RUNTIME_DIR"
 chmod 700 "$XDG_RUNTIME_DIR"
 
-# --- sanity check: is a GPU actually visible before we even try to launch CARLA? ---
-echo "--- GPU visibility check ---"
-if command -v nvidia-smi &>/dev/null; then
-    nvidia-smi || echo "WARNING: nvidia-smi present but failed to query a GPU."
-else
-    echo "WARNING: nvidia-smi not found in container."
-fi
-ls -la /dev/dri 2>/dev/null || echo "WARNING: /dev/dri not present (no DRM render device)."
-ls -la /dev/nvidia* 2>/dev/null || echo "WARNING: no /dev/nvidia* devices found — container likely has no GPU attached."
-echo "----------------------------"
-
 if [ -d "./CARLA_LATEST" ]; then
     echo "Directory exists."
 else
@@ -47,16 +36,16 @@ pip install --no-cache-dir -r Task9/requirements.txt
 id -u carlauser &>/dev/null || useradd -m carlauser
 chown -R carlauser:carlauser . "$XDG_RUNTIME_DIR"
 
-# --- capture CARLA's own stdout/stderr AND its internal log file, don't just background it blind ---
 CARLA_LOG=/tmp/carla_launch.log
 su carlauser -c "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR SDL_AUDIODRIVER=dummy ./CARLA_LATEST/CarlaUE4.sh -carla-rpc-port=2001 -RenderOffScreen" \
     > "$CARLA_LOG" 2>&1 &
 CARLA_PID=$!
 
-echo "Waiting for CARLA RPC port 2001..."
-for i in $(seq 1 60); do
+echo "Waiting for CARLA RPC port 2001 (this can take 1-3 min on a cold shader cache)..."
+TIMEOUT=180
+for i in $(seq 1 "$TIMEOUT"); do
     if ! kill -0 "$CARLA_PID" 2>/dev/null; then
-        echo "FATAL: CarlaUE4 process died during startup. Launch log:"
+        echo "FATAL: CarlaUE4 process died during startup. Wrapper stdout:"
         cat "$CARLA_LOG"
         exit 1
     fi
@@ -65,11 +54,20 @@ for i in $(seq 1 60); do
         break
     fi
     sleep 1
-    if [ "$i" -eq 60 ]; then
-        echo "FATAL: CARLA did not open port 2001 within 60s. Launch log so far:"
+    if [ "$i" -eq "$TIMEOUT" ]; then
+        echo "FATAL: CARLA did not open port 2001 within ${TIMEOUT}s."
+        echo "--- Wrapper stdout ---"
         cat "$CARLA_LOG"
-        echo "--- CarlaUE4 internal log (if it exists) ---"
-        find ./CARLA_LATEST -iname "CarlaUE4.log" -exec tail -n 100 {} \; 2>/dev/null
+        echo "--- Is the engine binary even running? ---"
+        ps aux | grep -i carla || echo "No CarlaUE4 process found in ps output."
+        echo "--- Actual Unreal Engine log (most recently modified) ---"
+        UE_LOG=$(find ./CARLA_LATEST -iname "*.log" -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+        if [ -n "${UE_LOG:-}" ]; then
+            echo "Found: $UE_LOG"
+            tail -n 150 "$UE_LOG"
+        else
+            echo "No .log files found anywhere under CARLA_LATEST — engine may have failed before writing any log."
+        fi
         kill "$CARLA_PID" 2>/dev/null || true
         exit 1
     fi
