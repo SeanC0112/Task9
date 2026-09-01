@@ -14,7 +14,7 @@ if [ -d "./CARLA_LATEST" ]; then
 else
     apt update && apt install -y curl
     curl -L -o carla_0.9.16.tar.gz \
-        "https://tiny.carla.org/carla-0-9-16-linux"
+        "https://s3.us-east-005.backblazeb2.com/carla-releases/Linux/CARLA_0.9.16.tar.gz"
     mkdir -p ./CARLA_LATEST
     echo "Extracting Carla to CARLA_LATEST/"
     tar -xvf ./carla_0.9.16.tar.gz -C ./CARLA_LATEST > /dev/null
