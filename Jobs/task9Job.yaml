@@ -38,35 +38,38 @@ spec:
           limits:
             memory: 32Gi
             cpu: "2"
-            nvidia.com/gpu: "2"
+            nvidia.com/gpu: "1"
           requests:
             memory: 32Gi
             cpu: "2"
-            nvidia.com/gpu: "2"
-      # - name: seanc-task9job-birdseye
-      #   image: pytorch/pytorch:2.13.0-cuda12.6-cudnn9-devel
-      #   securityContext:
-      #     runAsUser: 0
-      #   command:
-      #   - sh
-      #   - -c
-      #   - "apt-get update && apt-get install -y git && cd /pvcvolume && cd Task9 && bash bashScriptBirdseye.sh"
-      #   volumeMounts:
-      #   - name: pvcvolume
-      #     mountPath: /pvcvolume
-      #   resources:
-      #     limits:
-      #       memory: 32Gi
-      #       cpu: "2"
-      #       nvidia.com/gpu: "2"
-      #     requests:
-      #       memory: 32Gi
-      #       cpu: "2"
-      #       nvidia.com/gpu: "2"
+            nvidia.com/gpu: "1"
+      - name: seanc-task9job-birdseye
+        image: pytorch/pytorch:2.13.0-cuda12.6-cudnn9-devel
+        securityContext:
+          runAsUser: 0
+        command:
+        - sh
+        - -c
+        - "apt-get update && apt-get install -y git && cd /pvcvolumeextra && rm -rf Task9 && git clone https://github.com/SeanC0112/Task9 && cd Task9 && bash bashScriptBirdseye.sh"
+        volumeMounts:
+        - name: pvcvolumeextra
+          mountPath: /pvcvolumeextra
+        resources:
+          limits:
+            memory: 32Gi
+            cpu: "2"
+            nvidia.com/gpu: "1"
+          requests:
+            memory: 32Gi
+            cpu: "2"
+            nvidia.com/gpu: "1"
       volumes:
       - name: pvcvolume
         persistentVolumeClaim:
           claimName: seanc-task9pvc
+      - name: pvcvolumeextra
+        persistentVolumeClaim:
+          claimName: seanc-task9pvcextra
       # affinity:
       #   nodeAffinity:
       #     requiredDuringSchedulingIgnoredDuringExecution:
