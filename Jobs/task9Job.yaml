@@ -81,4 +81,4 @@ spec:
       #           - NVIDIA-A10
       restartPolicy: Never
   backoffLimit: 2
-  ttlSecondsAfterFinished: 60000
+  ttlSecondsAfterFinished: 600000
